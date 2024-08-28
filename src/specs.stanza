@@ -1,0 +1,75 @@
+#use-added-syntax(jitx)
+defpackage inductors/specs:
+  import core
+  import jitx
+
+  import jsl/errors
+
+doc: \<DOC>
+Inductor Specifications Data Strucgture
+
+These parameters come from the datasheet and
+provide tools for doing check computation on
+inductor devices.
+<DOC>
+public defstruct Inductor-Specs :
+  part-number:String
+  inductance:Toleranced
+  self-resonant-freq:Double
+  doc: \<DOC>
+  Current at 30% drop in inductance
+  <DOC>
+  rated-current:Toleranced
+  derate-temp:Double
+  derate-current:Toleranced
+  DC-R:Toleranced
+with:
+  printer => true
+  keyword-constructor => true
+
+public defn find-specs (f:(Int, Int) -> True|False, inductance:Int, spec-list:Seqable<KeyValue<Int, Inductor-Specs>>) -> KeyValue<Int,Inductor-Specs>:
+  val m = for kvp in spec-list first :
+    if f(key(kvp), inductance):
+      One(kvp)
+    else:
+      None()
+
+  match(m):
+    (_:None): throw $ ValueError("No Inductor Matches Desired Inductance: %_" % [inductance])
+    (given:One): value(given)
+
+
+doc: \<DOC>
+Search a spec list for a component matching the requested inductance.
+<DOC>
+public defn get-specs (inductance:Int, spec-list:Seqable<KeyValue<Int, Inductor-Specs>>) -> KeyValue<Int,Inductor-Specs>:
+  find-specs({_0 == _1}, inductance, spec-list)
+
+public defn get-ceil-specs (inductance:Int, spec-list:Seqable<KeyValue<Int, Inductor-Specs>>) -> KeyValue<Int,Inductor-Specs>:
+  find-specs({_0 >= _1}, inductance, spec-list)
+
+doc: \<DOC>
+Generator to create properties for inductor specifications.
+
+This function must be called from a `pcb-module` or `pcb-component`
+context.
+<DOC>
+public defn make-specs (specs:Inductor-Specs):
+  inside pcb-module:
+    property(self.inductance) = inductance(specs)
+    property(self.self-resonant-frequency) = self-resonant-freq(specs)
+    property(self.rated-current) = rated-current(specs)
+    property(self.derate-temp) = derate-temp(specs)
+    property(self.derate-current) = derate-current(specs)
+    property(self.DC-resistance) = DC-R(specs)
+
+
+public defn to-uH (nH:Int) -> Double:
+  to-double(nH) / 1000.0
+
+public defn to-H (nH:Int) -> Double:
+  to-double(nH) / 1.0e9
+
+public defn to-nH (H:Double) -> Int :
+  to-int(H * 1.0e9)
+

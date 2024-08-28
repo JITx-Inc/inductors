@@ -1,0 +1,165 @@
+#use-added-syntax(jitx)
+defpackage inductors/components/XFL3012:
+  import core
+  import jitx
+  import jitx/commands
+
+  import jsl/ensure
+  import jsl/symbols
+  import jsl/landpatterns
+  import jsl/utils
+
+  import inductors/specs
+
+
+doc: \<DOC>
+XFL3012 series specifications
+<DOC>
+public val XFL3012-specs = [
+  330 => Inductor-Specs(
+    part-number = "XFL3012-331MEC"
+    inductance = 0.33e-6 +/- (20 %),
+    self-resonant-freq = 293.0e6
+    rated-current = typ(3.4)
+    derate-temp = 65.0
+    derate-current = typ(3.5)
+    DC-R = min-typ-max(0.023, 0.023, 0.027)
+  )
+
+  560 => Inductor-Specs(
+    part-number = "XFL3012-561MEC"
+    inductance = 0.56e-6 +/- (20 %),
+    self-resonant-freq = 203.0e6
+    rated-current = typ(2.9)
+    derate-temp = 65.0
+    derate-current = typ(3.0),
+    DC-R = min-typ-max(0.028, 0.028, 0.032)
+  )
+  680 => Inductor-Specs(
+    part-number = "XFL3012-681MEC"
+    inductance = 0.68e-6 +/- (20 %),
+    self-resonant-freq = 164.0e6
+    rated-current = typ(2.7)
+    derate-temp = 65.0
+    derate-current = typ(2.8),
+    DC-R = min-typ-max(0.034, 0.034, 0.040)
+  )
+  1000 => Inductor-Specs(
+    part-number = "XFL3012-102MEC"
+    inductance = 1.0e-6 +/- (20 %),
+    self-resonant-freq = 115.0e6
+    rated-current = typ(2.3)
+    derate-temp = 65.0
+    derate-current = typ(2.6),
+    DC-R = min-typ-max(0.039, 0.039, 0.046)
+  )
+  1500 => Inductor-Specs(
+    part-number = "XFL3012-152MEC"
+    inductance = 1.5e-6 +/- (20 %),
+    self-resonant-freq = 94.4e6
+    rated-current = typ(2.2)
+    derate-temp = 65.0
+    derate-current = typ(2.2),
+    DC-R = min-typ-max(0.060, 0.060, 0.072)
+  )
+  2200 => Inductor-Specs(
+    part-number = "XFL3012-222MEC"
+    inductance = 2.2e-6 +/- (20 %),
+    self-resonant-freq = 73.2e6
+    rated-current = typ(1.6)
+    derate-temp = 65.0
+    derate-current = typ(1.9),
+    DC-R = min-typ-max(0.081, 0.081, 0.097)
+  )
+  3300 => Inductor-Specs(
+    part-number = "XFL3012-332MEC"
+    inductance = 3.3e-6 +/- (20 %),
+    self-resonant-freq = 61.6e6
+    rated-current = typ(1.4)
+    derate-temp = 65.0
+    derate-current = typ(1.6),
+    DC-R = min-typ-max(0.106, 0.106, 0.127)
+  )
+  4700 => Inductor-Specs(
+    part-number = "XFL3012-472MEC"
+    inductance = 4.7e-6 +/- (20 %),
+    self-resonant-freq = 52.6e6
+    rated-current = typ(1.2)
+    derate-temp = 65.0
+    derate-current = typ(1.4),
+    DC-R = min-typ-max(0.143, 0.143, 0.171)
+  )
+  6800 => Inductor-Specs(
+    part-number = "XFL3012-682MEC"
+    inductance = 6.8e-6 +/- (20 %),
+    self-resonant-freq = 39.9e6
+    rated-current = typ(0.97)
+    derate-temp = 65.0
+    derate-current = typ(1.3),
+    DC-R = min-typ-max(0.166, 0.166, 0.200)
+  )
+  10000 => Inductor-Specs(
+    part-number = "XFL3012-103MEC"
+    inductance = 10.0e-6 +/- (20 %),
+    self-resonant-freq = 34.6e6
+    rated-current = typ(0.74)
+    derate-temp = 65.0
+    derate-current = typ(1.2),
+    DC-R = min-typ-max(0.255, 0.255, 0.306)
+  )
+  ; Others in Series:
+  ; XFL3012-153MEC
+  ; XFL3012-223MEC
+  ; XFL3012-333MEC
+  ; XFL3012-393MEC
+  ; XFL3012-473MEC
+  ; XFL3012-563MEC
+  ; XFL3012-683MEC
+  ; XFL3012-823MEC
+  ; XFL3012-104MEC
+  ; XFL3012-224MEC
+]
+
+doc: \<DOC>
+Parameterized Inductor Components
+
+This components come from the CoilCraft XFL3012 series
+of parts.
+
+@param inductance in Nano-Henries.
+<DOC>
+public pcb-component component (inductance:Int) :
+  ensure-positive!("inductance", inductance)
+  manufacturer = "Coilcraft"
+  val [_, specs] = unpack $ get-specs(inductance, XFL3012-specs)
+  mpn = part-number(specs)
+  description = to-string $ "Inductor, %_uH, %_ Ω DC" % [to-uH(inductance), typ(DC-R(specs))]
+  datasheet = "https://www.coilcraft.com/getmedia/f76a3c9b-4fff-4397-8028-ef8e043eb200/xfl3012.pdf"
+  reference-prefix = "L"
+
+  make-specs(specs)
+
+  pin-properties :
+    [ pin:Ref | pads:Ref ...   | side:Dir ]
+    [ a      | a              | Left ]
+    [ c      | c              | Right ]
+
+  val symb = InductorSymbol(polarized? = true)
+  assign-symbol $ create-symbol(symb)
+
+  val pkg = Molded-2pin(
+    lead-span = typ(1.26) + (2.0 * (0.77 +/- 0.2))
+    lead = Molded-2pin-Lead(
+      length = 0.77 +/- 0.2
+      width = 2.69 +/- 0.2
+    )
+    polarized? = true,
+    package-body = PackageBody(
+      length = 3.0 +/- 0.2,
+      width = 3.0 +/- 0.2,
+      height = 1.3 +/- 0.1
+    )
+  )
+
+  assign-landpattern $ create-landpattern(pkg)
+

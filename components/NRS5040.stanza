@@ -1,0 +1,159 @@
+#use-added-syntax(jitx)
+defpackage inductors/components/NRS5040:
+  import core
+  import jitx
+  import jitx/commands
+
+  import jsl/ensure
+  import jsl/symbols
+  import jsl/landpatterns
+  import jsl/utils
+
+  import inductors/specs
+
+
+doc: \<DOC>
+NRS5040 series specifications
+
+This series has a limited number of
+parts but provides a selection from which
+we can make some intelligent decisions.
+<DOC>
+public val NRS5040-specs = [
+  1500 => Inductor-Specs(
+    part-number = "NRS5040T1R5NMGJV"
+    inductance = 1.5e-6 +/- (30 %),
+    self-resonant-freq = 60.0e6
+    rated-current = min-typ(6.4, 6.53)
+    derate-temp = 60.0
+    derate-current = min-typ(4.5, 4.73),
+    DC-R = 0.017 +/- (30 %)
+  )
+
+  2200 => Inductor-Specs(
+    part-number = "NRS5040T2R2NMGJ"
+    inductance = 2.2e-6 +/- (30 %),
+    self-resonant-freq = 42.0e6
+    rated-current = min-typ(5.0, 5.25)
+    derate-temp = 60.0
+    derate-current = min-typ(3.7, 4.08),
+    DC-R = 0.022 +/- (30 %)
+  )
+  3300 => Inductor-Specs(
+    part-number = "NRS5040T3R3NMGJ"
+    inductance = 3.3e-6 +/- (30 %),
+    self-resonant-freq = 32.0e6
+    rated-current = min-typ(4.0, 4.28)
+    derate-temp = 60.0
+    derate-current = min-typ(3.3, 3.77),
+    DC-R = 0.027 +/- (30 %)
+  )
+  4700 => Inductor-Specs(
+    part-number = "NRS5040T4R7NMGK"
+    inductance = 4.7e-6 +/- (30 %),
+    self-resonant-freq = 28.0e6
+    rated-current = min-typ(3.3, 3.47)
+    derate-temp = 60.0
+    derate-current = min-typ(3.1, 3.5),
+    DC-R = 0.029 +/- (30 %)
+  )
+  6800 => Inductor-Specs(
+    part-number = "NRS5040T6R8MMGJ"
+    inductance = 6.8e-6 +/- (20 %),
+    self-resonant-freq = 21.0e6
+    rated-current = min-typ(2.8, 2.9)
+    derate-temp = 60.0
+    derate-current = min-typ(2.4, 2.47),
+    DC-R = 0.049 +/- (30 %)
+  )
+  10000 => Inductor-Specs(
+    part-number = "NRS5040T100MMGJ"
+    inductance = 10.0e-6 +/- (20 %),
+    self-resonant-freq = 18.0e6
+    rated-current = min-typ(2.3, 2.47)
+    derate-temp = 60.0
+    derate-current = min-typ(2.1, 2.21),
+    DC-R = 0.056 +/- (30 %)
+  )
+  15000 => Inductor-Specs(
+    part-number = "NRS5040T150MMGJV"
+    inductance = 15.0e-6 +/- (20 %),
+    self-resonant-freq = 13.0e6
+    rated-current = min-typ(2.0, 2.150)
+    derate-temp = 60.0
+    derate-current = min-typ(1.8, 1.9),
+    DC-R = 0.080 +/- (30 %)
+  )
+  22000 => Inductor-Specs(
+    part-number = "NRS5040T220MMGKV"
+    inductance = 22.0e-6 +/- (20 %),
+    self-resonant-freq = 9.0e6
+    rated-current = min-typ(1.5, 1.58)
+    derate-temp = 60.0
+    derate-current = min-typ(1.4, 1.470),
+    DC-R = 0.126 +/- (30 %)
+  )
+  33000 => Inductor-Specs(
+    part-number = "NRS5040T330MMGJV"
+    inductance = 33.0e-6 +/- (20 %),
+    self-resonant-freq = 7.0e6
+    rated-current = min-typ(1.3, 1.39)
+    derate-temp = 60.0
+    derate-current = min-typ(1.2, 1.270),
+    DC-R = 0.180 +/- (30 %)
+  )
+  47000 => Inductor-Specs(
+    part-number = "NRS5040T470MMGJ"
+    inductance = 47.0e-6 +/- (20 %),
+    self-resonant-freq = 6.0e6
+    rated-current = min-typ(1.1, 1.15)
+    derate-temp = 60.0
+    derate-current = min-typ(0.9, 0.95),
+    DC-R = 0.310 +/- (30 %)
+  )
+]
+
+
+doc: \<DOC>
+Parameterized Inductor Components
+
+This components come from the Taiyo Yuden NRS5040 series
+of parts.
+
+@param inductance in Nano-Henries.
+<DOC>
+public pcb-component component (inductance:Int) :
+  ensure-positive!("inductance", inductance)
+  manufacturer = "Taiyo Yuden"
+  val [_, specs] = unpack $ get-specs(inductance, NRS5040-specs)
+  mpn = part-number(specs)
+  description = to-string $ "Inductor, %_uH, %_ Ω DC" % [to-uH(inductance), typ(DC-R(specs))]
+  datasheet = "https://www.yuden.co.jp/productdata/catalog/wound04_e.pdf"
+  reference-prefix = "L"
+
+  make-specs(specs)
+
+  pin-properties :
+    [ pin : Ref | pads:Int ...   | side:Dir ]
+    [ p[1]      | 1              | Left ]
+    [ p[2]      | 2              | Right ]
+
+  val symb = InductorSymbol()
+  assign-symbol $ create-symbol(symb)
+
+
+  val pkg = Molded-2pin(
+    lead-span = 4.9 +/- 0.2
+    lead = Molded-2pin-Lead(
+      length = 1.2 +/- 0.2
+      width = 3.8 +/- 0.1
+    )
+    package-body = PackageBody(
+      length = 4.9 +/- 0.2,
+      width = 4.9 +/- 0.2,
+      height = 4.1 +/- 0.1
+    )
+  )
+
+  assign-landpattern $ create-landpattern(pkg)
+
