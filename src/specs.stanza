@@ -2,6 +2,7 @@
 defpackage inductors/specs:
   import core
   import jitx
+  import jitx/emodels
 
   import jsl/errors
 
@@ -73,3 +74,8 @@ public defn to-H (nH:Int) -> Double:
 public defn to-nH (H:Double) -> Int :
   to-int(H * 1.0e9)
 
+public defn add-emodel () :
+  inside pcb-component:
+    val ind-V = property(self.inductance)
+    val rated-I = property(self.rated-current)
+    emodel = Inductor(typ(ind-V), value $ max-%(ind-V), max-value(rated-I))
