@@ -153,6 +153,7 @@ public pcb-component component (inductance:Int) :
       length = 0.77 +/- 0.2
       width = 2.69 +/- 0.2
     )
+    keep-out = One $ IntraPadKeepOut(),
     polarized? = true,
     package-body = PackageBody(
       length = 3.0 +/- 0.2,
