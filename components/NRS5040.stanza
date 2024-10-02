@@ -153,6 +153,7 @@ public pcb-component component (inductance:Int) :
       width = 4.9 +/- 0.2,
       height = 4.1 +/- 0.1
     )
+    keep-out = One $ IntraPadKeepOut(),
   )
 
   assign-landpattern $ create-landpattern(pkg)
